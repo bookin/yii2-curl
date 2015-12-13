@@ -129,7 +129,7 @@ class Curl extends Object{
             "Connection"=>"keep-alive"
         ],$headers);
 
-        $request_data = is_array($data)?http_build_query($data):$data;
+        $request_data = !empty($data)&&is_array($data)?http_build_query($data):$data;
         switch(strtoupper($method)){
             case self::METHOD_POST:
                 $curlParams[CURLOPT_POST]=true;
@@ -267,7 +267,7 @@ class Curl extends Object{
     /**
      * @return string
      */
-    protected function getCookiesFilePath(){
+    public function getCookiesFilePath(){
         $folder = $this->getRuntimePath();
         $filePath = $folder.DIRECTORY_SEPARATOR.$this->cookieFile;
         if(!is_file($filePath)){
