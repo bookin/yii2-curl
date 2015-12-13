@@ -29,11 +29,11 @@ class Curl extends Object{
      * @param $url
      * @param array $body
      * @param array $headers
-     * @param array $curlOptions
+     * @param array $curl_options
      * @return $this
      */
-    public function get($url, $body=[], $headers=[], $curlOptions=[]){
-        $this->curlRequest($url, $body, self::METHOD_GET, $headers, $curlOptions);
+    public function get($url, $body=[], $headers=[], $curl_options=[]){
+        $this->curlRequest($url, $body, self::METHOD_GET, $headers, $curl_options);
         return $this;
     }
 
@@ -41,11 +41,11 @@ class Curl extends Object{
      * @param $url
      * @param array $body
      * @param array $headers
-     * @param array $curlOptions
+     * @param array $curl_options
      * @return $this
      */
-    public function head($url, $body=[], $headers=[], $curlOptions=[]){
-        $this->curlRequest($url, $body, self::METHOD_HEAD, $headers, $curlOptions);
+    public function head($url, $body=[], $headers=[], $curl_options=[]){
+        $this->curlRequest($url, $body, self::METHOD_HEAD, $headers, $curl_options);
         return $this;
     }
 
@@ -53,11 +53,11 @@ class Curl extends Object{
      * @param $url
      * @param array $body
      * @param array $headers
-     * @param array $curlOptions
+     * @param array $curl_options
      * @return $this
      */
-    public function post($url, $body=[], $headers=[], $curlOptions=[]){
-        $this->curlRequest($url, $body, self::METHOD_POST, $headers, $curlOptions);
+    public function post($url, $body=[], $headers=[], $curl_options=[]){
+        $this->curlRequest($url, $body, self::METHOD_POST, $headers, $curl_options);
         return $this;
     }
 
@@ -65,11 +65,11 @@ class Curl extends Object{
      * @param $url
      * @param array $body
      * @param array $headers
-     * @param array $curlOptions
+     * @param array $curl_options
      * @return $this
      */
-    public function put($url, $body=[], $headers=[], $curlOptions=[]){
-        $this->curlRequest($url, $body, self::METHOD_PUT, $headers, $curlOptions);
+    public function put($url, $body=[], $headers=[], $curl_options=[]){
+        $this->curlRequest($url, $body, self::METHOD_PUT, $headers, $curl_options);
         return $this;
     }
 
@@ -77,11 +77,16 @@ class Curl extends Object{
      * @param $url
      * @param array $body
      * @param array $headers
-     * @param array $curlOptions
+     * @param array $curl_options
      * @return $this
      */
-    public function delete($url, $body=[], $headers=[], $curlOptions=[]){
-        $this->curlRequest($url, $body, self::METHOD_DELETE, $headers, $curlOptions);
+    public function delete($url, $body=[], $headers=[], $curl_options=[]){
+        $this->curlRequest($url, $body, self::METHOD_DELETE, $headers, $curl_options);
+        return $this;
+    }
+
+    public function request($method=self::METHOD_GET, $url, $body=[], $headers=[], $curl_options=[]){
+        $this->curlRequest($url, $body, $method, $headers, $curl_options);
         return $this;
     }
 
@@ -126,23 +131,33 @@ class Curl extends Object{
 
         $request_data = is_array($data)?http_build_query($data):$data;
         switch(strtoupper($method)){
-            case 'POST':
+            case self::METHOD_POST:
                 $curlParams[CURLOPT_POST]=true;
                 if($request_data)
                     $curlParams[CURLOPT_POSTFIELDS]=$request_data;
                 break;
-            case 'PUT':
+            case self::METHOD_PUT:
                 $curlParams[CURLOPT_CUSTOMREQUEST]="PUT";
                 if($request_data)
                     $curlParams[CURLOPT_POSTFIELDS]=$request_data;
                 break;
-            case 'DELETE':
+            case self::METHOD_DELETE:
                 $curlParams[CURLOPT_CUSTOMREQUEST]="DELETE";
                 if($request_data)
                     $curlParams[CURLOPT_URL]=$url.'?'.$request_data;
                 break;
-            default:
+            case self::METHOD_HEAD:
+                $curlParams[CURLOPT_NOBODY]=true;
+                if($request_data)
+                    $curlParams[CURLOPT_URL]=$url.'?'.$request_data;
+                break;
+            case self::METHOD_GET:
                 $curlParams[CURLOPT_HTTPGET]=true;
+                if($request_data)
+                    $curlParams[CURLOPT_URL]=$url.'?'.$request_data;
+                break;
+            default:
+                $curlParams[CURLOPT_CUSTOMREQUEST]=strtoupper($method);
                 if($request_data)
                     $curlParams[CURLOPT_URL]=$url.'?'.$request_data;
                 break;
