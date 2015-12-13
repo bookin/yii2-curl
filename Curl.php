@@ -13,7 +13,7 @@ use yii\helpers\ArrayHelper;
  */
 class Curl extends Object{
 
-    public $runtimePath = 'application.runtime.curl';
+    public $runtimePath = '@app/runtime/curl';
     public $cookieFile = 'curl_cookie';
 
     const METHOD_GET = 'GET';
@@ -123,33 +123,36 @@ class Curl extends Object{
             "Accept-Language"=>"ru-RU,ru;q=0.8,en-US;q=0.5,en;q=0.3",
             "Connection"=>"keep-alive"
         ],$headers);
-        foreach($headers_options as $key=>$val){
-            $headers_data[]=$key.': '.$val;
-        }
 
+        $request_data = http_build_query($body);
         switch(strtoupper($method)){
             case 'POST':
                 $curlParams[CURLOPT_POST]=true;
                 if($body)
-                    $curlParams[CURLOPT_POSTFIELDS]=(is_array($body)?http_build_query($body):$body);
+                    $curlParams[CURLOPT_POSTFIELDS]=(is_array($body)?$request_data:$body);
                 break;
             case 'PUT':
                 $curlParams[CURLOPT_CUSTOMREQUEST]="PUT";
                 if($body)
-                    $curlParams[CURLOPT_POSTFIELDS]=(is_array($body)?http_build_query($body):$body);
+                    $curlParams[CURLOPT_POSTFIELDS]=(is_array($body)?$request_data:$body);
                 break;
             case 'DELETE':
                 $curlParams[CURLOPT_CUSTOMREQUEST]="DELETE";
                 if($body)
-                    $curlParams[CURLOPT_URL]=$url.'?'.(is_array($body)?http_build_query($body):$body);
+                    $curlParams[CURLOPT_URL]=$url.'?'.(is_array($body)?$request_data:$body);
                 break;
             default:
                 $curlParams[CURLOPT_HTTPGET]=true;
                 if($body)
-                    $curlParams[CURLOPT_URL]=$url.'?'.(is_array($body)?http_build_query($body):$body);
+                    $curlParams[CURLOPT_URL]=$url.'?'.(is_array($body)?$request_data:$body);
                 break;
         }
         $curlParams[CURLOPT_HTTPHEADER] = $headers_data;
+        $headers_options['Content-Length']=strlen($request_data);
+
+        foreach($headers_options as $key=>$val){
+            $headers_data[]=$key.': '.$val;
+        }
 
         if(strtolower((substr($url,0,5))=='https')) {
             $curlParams[CURLOPT_SSL_VERIFYPEER]=false;
