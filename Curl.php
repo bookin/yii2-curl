@@ -87,15 +87,15 @@ class Curl extends Object{
 
     /**
      * @param $url
-     * @param array $body
+     * @param array $data
      * @param string $method
      * @param array $headers
      * @param array $curl_options
      * @return $this
      */
-    protected function curlRequest($url, $body=[], $method=self::METHOD_GET, $headers=[], $curl_options=[]){
-        if($body&&is_array($body)){
-            array_walk($body, function(&$val, $key){
+    protected function curlRequest($url, $data=[], $method=self::METHOD_GET, $headers=[], $curl_options=[]){
+        if($data&&is_array($data)){
+            array_walk($data, function(&$val, $key){
                 if($val === null)
                     $val = '';
             });
@@ -124,31 +124,31 @@ class Curl extends Object{
             "Connection"=>"keep-alive"
         ],$headers);
 
-        $request_data = http_build_query($body);
+        $request_data = is_array($data)?http_build_query($data):$data;
         switch(strtoupper($method)){
             case 'POST':
                 $curlParams[CURLOPT_POST]=true;
-                if($body)
-                    $curlParams[CURLOPT_POSTFIELDS]=(is_array($body)?$request_data:$body);
+                if($request_data)
+                    $curlParams[CURLOPT_POSTFIELDS]=$request_data;
                 break;
             case 'PUT':
                 $curlParams[CURLOPT_CUSTOMREQUEST]="PUT";
-                if($body)
-                    $curlParams[CURLOPT_POSTFIELDS]=(is_array($body)?$request_data:$body);
+                if($request_data)
+                    $curlParams[CURLOPT_POSTFIELDS]=$request_data;
                 break;
             case 'DELETE':
                 $curlParams[CURLOPT_CUSTOMREQUEST]="DELETE";
-                if($body)
-                    $curlParams[CURLOPT_URL]=$url.'?'.(is_array($body)?$request_data:$body);
+                if($request_data)
+                    $curlParams[CURLOPT_URL]=$url.'?'.$request_data;
                 break;
             default:
                 $curlParams[CURLOPT_HTTPGET]=true;
-                if($body)
-                    $curlParams[CURLOPT_URL]=$url.'?'.(is_array($body)?$request_data:$body);
+                if($request_data)
+                    $curlParams[CURLOPT_URL]=$url.'?'.$request_data;
                 break;
         }
         $curlParams[CURLOPT_HTTPHEADER] = $headers_data;
-        $headers_options['Content-Length']=strlen($request_data);
+        //$headers_options['Content-Length']=strlen($request_data);
 
         foreach($headers_options as $key=>$val){
             $headers_data[]=$key.': '.$val;
