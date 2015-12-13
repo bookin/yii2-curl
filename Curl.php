@@ -162,12 +162,12 @@ class Curl extends Object{
                     $curlParams[CURLOPT_URL]=$url.'?'.$request_data;
                 break;
         }
-        $curlParams[CURLOPT_HTTPHEADER] = $headers_data;
-        //$headers_options['Content-Length']=strlen($request_data);
 
+        //$headers_options['Content-Length']=strlen($request_data);
         foreach($headers_options as $key=>$val){
             $headers_data[]=$key.': '.$val;
         }
+        $curlParams[CURLOPT_HTTPHEADER] = $headers_data;
 
         if(strtolower((substr($url,0,5))=='https')) {
             $curlParams[CURLOPT_SSL_VERIFYPEER]=false;
