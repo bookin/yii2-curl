@@ -1,0 +1,11 @@
+{
+    "name": "bookin/yii2-curl",
+    "description": "Wrapper for Curl",
+    "authors": [
+        {
+            "name": "Anton",
+            "email": "issues.bookin@gmail.com"
+        }
+    ],
+    "require": {}
+}
