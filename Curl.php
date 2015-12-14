@@ -23,7 +23,15 @@ class Curl extends Object{
     const METHOD_HEAD = 'HEAD';
 
     private $_curlInfo, $_curlError, $_headers = [], $_body;
+    private $_request_headers=[];
     protected $_errors=[];
+    protected $ch;
+
+    public function __construct($config = []){
+        $this->ch = curl_init();
+        $this->installDefaultHeaders();
+        parent::__construct($config = []);
+    }
 
     /**
      * @param $url
@@ -122,12 +130,9 @@ class Curl extends Object{
 
         $url_info = parse_url($url);
         $headers_data = [];
-        $headers_options = ArrayHelper::merge([
-            "Host"=>$url_info['host'],
-            "Accept"=>"text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8",
-            "Accept-Language"=>"ru-RU,ru;q=0.8,en-US;q=0.5,en;q=0.3",
-            "Connection"=>"keep-alive"
-        ],$headers);
+        if(!$this->getRequestHeaders("Host"));
+        $this->setRequestHeaders(["Host"=>$url_info['host']]);
+        $headers_options = ArrayHelper::merge($this->getRequestHeaders()?:[],$headers);
 
         $request_data = !empty($data)&&is_array($data)?http_build_query($data):$data;
         switch(strtoupper($method)){
@@ -174,7 +179,7 @@ class Curl extends Object{
             $curlParams[CURLOPT_SSL_VERIFYHOST]=false;
         }
 
-        $ch = curl_init();
+        $ch = $this->ch;
         if($curl_options)
             $curlParams = ArrayHelper::merge($curlParams, $curl_options);
         curl_setopt_array($ch, $curlParams);
@@ -194,9 +199,25 @@ class Curl extends Object{
         $body = substr($result, $this->curlInfo['header_size']);
         $this->body = $body;
 
-        curl_close($ch);
-
         return $this;
+    }
+
+
+    /**
+     * Open session
+     */
+    public function open(){
+        if(!empty($this->ch) && gettype($this->ch) == 'resource'){
+            curl_close($this->ch);
+        }
+        $this->ch = curl_init();
+    }
+
+    /**
+     * Close session
+     */
+    public function close(){
+        curl_close($this->ch);
     }
 
     /**
@@ -302,5 +323,40 @@ class Curl extends Object{
     protected function setErrors($errors)
     {
         $this->_errors[] = $errors;
+    }
+
+    /**
+     * @param null $key
+     * @return mixed
+     */
+    public function getRequestHeaders($key=null)
+    {
+        if(isset($key)){
+            return $this->_request_headers[$key];
+        }else{
+            return $this->_request_headers;
+        }
+    }
+
+    /**
+     * @param array $headers
+     * @return $this
+     */
+    public function setRequestHeaders($headers)
+    {
+        if(is_array($headers)){
+            $headers = array_change_key_case($headers, CASE_UPPER);
+            $this->_request_headers = ArrayHelper::merge($this->_request_headers, $headers);
+        }
+
+        return $this;
+    }
+
+    public function installDefaultHeaders(){
+        $this->setRequestHeaders([
+            "Accept"=>"text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8",
+            "Accept-Language"=>"ru-RU,ru;q=0.8,en-US;q=0.5,en;q=0.3",
+            "Connection"=>"keep-alive"
+        ]);
     }
 }
